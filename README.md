@@ -25,9 +25,9 @@ using features that were too highly correlated with each other in order to avoid
 The first feature that was most strongly correlated with price was `sqft_living`, which we used to engineer a price per square foot feature in order to create
 groups of homes within similar price ranges. Several other strongly-correlated features included:  
 * `condition` - rated 1-5 by King County, with 3 being the lowest inhabitable condition (not requiring severe remodeling)  
-* `grade` - a slightly more objective overview of the quality of the home's construction and its luxury features and finishes  
+* `grade` - rated 1-13 as an overview of the quality of the home's construction and its luxury features (per [King County Glossary](info.kingcounty.gov/assessor/esales/Glossary.aspx?type=r))  
 * `zipcode` - which we used in combination with per-sqft pricing to map areas by their home prices
-* `sqft_living15` - which is a mean of the square footage of the home's 15 nearest neighbors, useful for comparing properties
+* `sqft_living15` - a mean of the square footage of the home's 15 nearest neighbors, useful for comparing properties
 * `sqft_lot` - the size of the entire property  
 * `waterfront` - more useful for the 'Luxury' (home grade 10+) subset, but strongly correlated with price  
 
@@ -38,7 +38,7 @@ Several of our engineered features include:
 
 Due to the focus of this analysis being residential realty, we subset our data in the following ways:  
 * Condition 3 and above - to only include inhabitable homes
-* Grade 6 and above - for the same reason as condition (per [King County Glossary](info.kingcounty.gov/assessor/esales/Glossary.aspx?type=r))  
+* Grade 6 and above - for the same reason as condition   
 * All homes within 3 standard deviations of the mean Per Square Foot price to reduce outlying data.  
 
 ## Modeling  
