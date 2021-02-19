@@ -52,11 +52,11 @@ data did not meet the assumptions of Linear Regression very well.
 Following this first model, we used several transformations to normalize and center our data to a more Gaussian distribution and created
 several more models using Ordinary Least Squares, which produced much higher R-squared values and significant p-values.  
 ### Updated Model for All Homes  
-![allhomesolsmodel](img/allhomesols.jpg)  
+![allhomesolsmodel](img/allhomesols.JPG)  
 This model explained variance to a fairly high degree, with virtually no issues of multicollinearity, although there was still some variance.  
 ![allhomesqqplot](img/allhomesfinalmodel.png)
 
 ## Summary
 
 ### King County Zipcode Map
-![kingcountyzipcodemap](img/kingcountymap])
+![kingcountyzipcodemap](img/kingcountymap.png)
