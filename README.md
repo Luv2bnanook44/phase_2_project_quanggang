@@ -57,6 +57,15 @@ This model explained variance to a fairly high degree, with virtually no issues 
 ![allhomesqqplot](img/allhomesfinalmodel.png)
 
 ## Summary
+Overall, it was noticeable that normalizing and transforming the data, as well as subsetting it to reflect different populations and needs was
+successful in increasing modeling accuracy. From a business perspective, we were able to highlight several important features that contribute
+to home prices, namely:
+* Location  
+* Overall square footage of the home   
+* Value and size of neighboring homes  
+* The home's condition  
+* Its luxury features (or lack thereof)  
 
+Below, you will find a map of King County zipcodes to provide a reference for location and proximity to the city of Seattle.  
 ### King County Zipcode Map
 ![kingcountyzipcodemap](img/KingCountyMap.png)
