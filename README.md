@@ -59,4 +59,4 @@ This model explained variance to a fairly high degree, with virtually no issues 
 ## Summary
 
 ### King County Zipcode Map
-![kingcountyzipcodemap](img/kingcountymap.png)
+![kingcountyzipcodemap](img/KingCountyMap.png)
