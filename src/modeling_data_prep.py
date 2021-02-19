@@ -38,7 +38,7 @@ def add_dummies(data):
     
     continuous = data[['price', 'sqft_living', 'sqft_lot', 'sqft_above', 
                          'sqft_living15', 'sqft_lot15', 'price_per_sqft',
-                         'zip_psqft', 'price_per_lot_sqft', 'yard_size']]
+                         'zip_psqft', 'price_per_lot_sqft', 'yard_size', 'grade', 'condition']]
     mod_df = pd.concat([continuous, inc, wf, in_city, bedrooms,
                        bathrooms, floor_dummies, cond_dummies, grade_dummies,
                        season_dummies, lc, yrbuilt_dummies, decades, fortyyr], axis=1)
@@ -57,43 +57,213 @@ def continuous_dists(data, cols):
         ax[1][i].set_title(continuous_vars[i+3]+' Distribution')
     return ax
     
-# def normalizing(df):
-#     import numpy as np
-#     import matplotlib.pyplot as plt
+def normalizing(data):
+    import numpy as np
+    import matplotlib.pyplot as plt
     
-#     log_price = np.log(lux_ols_base['price'])
-#     log_sqft_living = np.log(lux_ols_base['sqft_living'])
-#     log_sqft_lot = np.log(lux_ols_base['sqft_lot'])
-#     log_sqft_living15 = np.log(lux_ols_base['sqft_living15'])
-#     log_sqft_lot15 = np.log(lux_ols_base['sqft_lot15'])
+    data = data[(data['grade']>=6)&(data['condition']>=3)]
+    
+    log_price = np.log(data['price'])
+    log_sqft_living = np.log(data['sqft_living'])
+    log_sqft_lot = np.log(data['sqft_lot'])
+    log_sqft_living15 = np.log(data['sqft_living15'])
+    log_sqft_lot15 = np.log(data['sqft_lot15'])
+    log_yard_size = np.log(data['yard_size'])
 
-#     plt.hist(log_price, bins = 'auto', color = 'r', alpha = .7);
-#     plt.hist(log_sqft_living, bins = 'auto', color = 'b', alpha = .7);
-#     plt.hist(log_sqft_lot, bins = 'auto', color = 'g', alpha = .7);
-#     plt.hist(log_sqft_living15, bins = 'auto', color = 'pink', alpha = .7);
-#     plt.hist(log_sqft_lot15, bins = 'auto', color = 'y', alpha = .7);
+    plt.hist(log_price, bins = 'auto', color = 'r', alpha = .7);
+    plt.hist(log_sqft_living, bins = 'auto', color = 'b', alpha = .7);
+    plt.hist(log_sqft_lot, bins = 'auto', color = 'g', alpha = .7);
+    plt.hist(log_sqft_living15, bins = 'auto', color = 'pink', alpha = .7);
+    plt.hist(log_sqft_lot15, bins = 'auto', color = 'y', alpha = .7);
     
-#     return plt.show()
+    logged_vars = [log_price, log_sqft_living, log_sqft_lot, 
+                   log_sqft_living15, log_sqft_lot15, log_yard_size]
+    
+    return logged_vars, plt.show()
     
     
     
-# def power_transform():
-#     import matplotlib.pyplot as plt
-#     import numpy as np
+def power_transform(logged=None):
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from sklearn.preprocessing import StandardScaler, PowerTransformer
     
-#     power = PowerTransformer()
+    if logged==None:
+        return print("Error: must have list-like logged argument that contains 6 elements.")
+    
+    power = PowerTransformer()
 
-#     power_price = power.fit_transform(np.array(log_price).reshape(-1, 1))
-#     power_sqft_living = power.fit_transform(np.array(log_sqft_living).reshape(-1, 1))
-#     power_sqft_lot = power.fit_transform(np.array(log_sqft_lot).reshape(-1, 1))
-#     power_sqft_living15 = power.fit_transform(np.array(log_sqft_living15).reshape(-1, 1))
-#     power_sqft_lot15 = power.fit_transform(np.array(log_sqft_lot15).reshape(-1, 1))
+    power_price = power.fit_transform(np.array(logged[0]).reshape(-1, 1))
+    power_sqft_living = power.fit_transform(np.array(logged[1]).reshape(-1, 1))
+    power_sqft_lot = power.fit_transform(np.array(logged[2]).reshape(-1, 1))
+    power_sqft_living15 = power.fit_transform(np.array(logged[3]).reshape(-1, 1))
+    power_sqft_lot15 = power.fit_transform(np.array(logged[4]).reshape(-1, 1))
+    power_yard_size = power.fit_transform(np.array(logged[5]).reshape(-1, 1))
 
-#     plt.hist(power_price, bins = 'auto', color = 'r', alpha = .7);
-#     plt.hist(power_sqft_living, bins = 'auto', color = 'b', alpha = .7);
-#     plt.hist(power_sqft_lot, bins = 'auto', color = 'g', alpha = .7);
-#     plt.hist(power_sqft_living15, bins = 'auto', color = 'pink', alpha = .7);
-#     plt.hist(power_sqft_lot15, bins = 'auto', color = 'y', alpha = .7);
-#     return plt.show(), 
+    plt.hist(power_price, bins = 'auto', color = 'r', alpha = .7);
+    plt.hist(power_sqft_living, bins = 'auto', color = 'b', alpha = .7);
+    plt.hist(power_sqft_lot, bins = 'auto', color = 'g', alpha = .7);
+    plt.hist(power_sqft_living15, bins = 'auto', color = 'pink', alpha = .7);
+    plt.hist(power_sqft_lot15, bins = 'auto', color = 'y', alpha = .7);
+    
+    powered_vars = [power_price, power_sqft_living, power_sqft_living15,
+                    power_sqft_lot, power_sqft_lot15, power_yard_size]
+    return powered_vars, plt.show()
 
-# def 
+def final_model_all_homes(data, powered=None):
+    from statsmodels.formula.api import ols
+    import pandas as pd
+    
+    data = data[(data['grade']>=6)&(data['condition']>=3)]
+    grade_dummies = pd.get_dummies(data['grade'].astype(int),
+                                   prefix='grade', drop_first=True)
+    lc_series = pd.Series(data['location_cost']).astype('category')
+
+    lc = pd.get_dummies(lc_series, drop_first=True)
+    if powered==None:
+        return print("Error: Must have list-liked powered argument")
+    data['price'] = powered[0]
+    data['sqft_living'] = powered[1]
+    data['sqft_living15'] = powered[2]
+    
+    final_data = pd.concat([data[['price','sqft_living',
+                                 'sqft_living15']], 
+                           grade_dummies, lc], axis=1)
+    
+    x_cols = final_data.drop('price', axis = 1).columns
+    predictors = '+'.join(x_cols)
+                      
+    formula = 'price' + '~' + predictors
+
+    model = ols(formula = formula, data = final_data).fit()                  
+    return model, final_data
+
+def final_model_luxury(data):
+    from statsmodels.formula.api import ols
+    import pandas as pd
+    import numpy as np
+    from sklearn.preprocessing import StandardScaler, PowerTransformer
+    
+    ## Log and power transform
+    
+    data = data[(data['grade']>=10)&(data['condition']>=3)]
+    
+    log_price = np.log(data['price'])
+    log_sqft_living = np.log(data['sqft_living'])
+    log_sqft_lot = np.log(data['sqft_lot'])
+    log_sqft_living15 = np.log(data['sqft_living15'])
+    log_sqft_lot15 = np.log(data['sqft_lot15'])
+    log_yard_size = np.log(data['yard_size'])
+    
+    logged_vars = [log_price, log_sqft_living, log_sqft_lot, 
+                   log_sqft_living15, log_sqft_lot15, log_yard_size]
+    
+    logged = logged_vars
+    
+    power = PowerTransformer()
+
+    power_price = power.fit_transform(np.array(logged[0]).reshape(-1, 1))
+    power_sqft_living = power.fit_transform(np.array(logged[1]).reshape(-1, 1))
+    power_sqft_lot = power.fit_transform(np.array(logged[2]).reshape(-1, 1))
+    power_sqft_living15 = power.fit_transform(np.array(logged[3]).reshape(-1, 1))
+    power_sqft_lot15 = power.fit_transform(np.array(logged[4]).reshape(-1, 1))
+    power_yard_size = power.fit_transform(np.array(logged[5]).reshape(-1, 1))
+    
+    powered_vars = [power_price, power_sqft_living, power_sqft_living15,
+                    power_sqft_lot, power_sqft_lot15, power_yard_size]
+    
+    
+    ##Prepare model
+    
+    grade_dummies = pd.get_dummies(data['grade'].astype(int),
+                                   prefix='grade', drop_first=True)
+    lc_series = pd.Series(data['location_cost']).astype('category')
+    lc = pd.get_dummies(lc_series, drop_first=True) 
+    cond_dummies = pd.get_dummies(data['condition'].astype(int), 
+                                  prefix='cond', drop_first=True)
+    inc_series = pd.Series(data['unincorporated']).astype('category')
+    inc = pd.get_dummies(inc_series, prefix='inc', drop_first=True)
+    
+    wf_series = pd.Series(data['waterfront'])
+
+    cat_wf = wf_series.astype('category')
+
+    wf = pd.get_dummies(cat_wf, prefix='wf', drop_first=True)
+    
+    powered = powered_vars
+    data['price'] = powered[0]
+    data['sqft_living'] = powered[1]
+    data['sqft_living15'] = powered[2]
+    
+    final_data = pd.concat([data[['price','sqft_living', 'sqft_living15']],
+                           wf, cond_dummies,
+                           grade_dummies, lc, inc], axis=1)
+    
+    x_cols = final_data.drop('price', axis = 1).columns
+    predictors = '+'.join(x_cols)
+                      
+    formula = 'price' + '~' + predictors
+
+    model = ols(formula = formula, data = final_data).fit() 
+    
+    return model, final_data
+
+def final_model_non_lux(data):
+    from statsmodels.formula.api import ols
+    import pandas as pd
+    import numpy as np
+    from sklearn.preprocessing import StandardScaler, PowerTransformer
+    # subsetting the model
+    data = data[(data['grade']>6)&(data['grade']<=9)&(data['condition']>=3)]
+    
+    ## Log and power transform
+    
+    log_price = np.log(data['price'])
+    log_sqft_living = np.log(data['sqft_living'])
+    log_sqft_lot = np.log(data['sqft_lot'])
+    log_sqft_living15 = np.log(data['sqft_living15'])
+    log_sqft_lot15 = np.log(data['sqft_lot15'])
+    log_yard_size = np.log(data['yard_size'])
+    
+    logged_vars = [log_price, log_sqft_living, log_sqft_lot, 
+                   log_sqft_living15, log_sqft_lot15, log_yard_size]
+    
+    logged = logged_vars
+    
+    power = PowerTransformer()
+
+    power_price = power.fit_transform(np.array(logged[0]).reshape(-1, 1))
+    power_sqft_living = power.fit_transform(np.array(logged[1]).reshape(-1, 1))
+    power_sqft_lot = power.fit_transform(np.array(logged[2]).reshape(-1, 1))
+    power_sqft_living15 = power.fit_transform(np.array(logged[3]).reshape(-1, 1))
+    power_sqft_lot15 = power.fit_transform(np.array(logged[4]).reshape(-1, 1))
+    power_yard_size = power.fit_transform(np.array(logged[5]).reshape(-1, 1))
+    
+    powered_vars = [power_price, power_sqft_living, power_sqft_living15,
+                    power_sqft_lot, power_sqft_lot15, power_yard_size]
+    
+    # Get dummies and prepare model data
+    grade_dummies = pd.get_dummies(data['grade'].astype(int),
+                                   prefix='grade', drop_first=True)
+    lc_series = pd.Series(data['location_cost']).astype('category')
+    lc = pd.get_dummies(lc_series, drop_first=True) 
+    cond_dummies = pd.get_dummies(data['condition'].astype(int), 
+                                  prefix='cond', drop_first=True)
+    powered = powered_vars
+    data['price'] = powered[0]
+    data['sqft_living'] = powered[1]
+    data['sqft_living15'] = powered[2]
+    data['sqft_lot'] = powered[3]
+    
+    final_data = pd.concat([data[['price','sqft_living', 'sqft_living15',
+                                 'sqft_lot']], grade_dummies, lc, 
+                            cond_dummies], axis=1)
+    
+    x_cols = final_data.drop('price', axis = 1).columns
+    predictors = '+'.join(x_cols)
+                      
+    formula = 'price' + '~' + predictors
+
+    model = ols(formula = formula, data = final_data).fit() 
+    return model, final_data
+
