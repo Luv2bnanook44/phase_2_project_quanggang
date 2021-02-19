@@ -45,16 +45,16 @@ Due to the focus of this analysis being residential realty, we subset our data i
 ### Initial Model  
 Because `sqft_living` had the highest initial correlation, we used that to create our first simple model with the following formula:  
 `formula = 'price ~ sqft_living'`  
-![fsm_qqplot](img/initialmodel)  
+![fsm_qqplot](img/initialmodel.png)  
 This first model had an R-squared of .493, so it was not able to explain a lot of the variance very well, and as you can see by the qqplot for 
 graphing the residuals (errors), the rate error was very high for high and low values of x. From analyzing this model, we could see that our
 data did not meet the assumptions of Linear Regression very well.  
 Following this first model, we used several transformations to normalize and center our data to a more Gaussian distribution and created
 several more models using Ordinary Least Squares, which produced much higher R-squared values and significant p-values.  
 ### Updated Model for All Homes  
-![allhomesolsmodel](img/allhomesols)  
+![allhomesolsmodel](img/allhomesols.jpg)  
 This model explained variance to a fairly high degree, with virtually no issues of multicollinearity, although there was still some variance.  
-![allhomesqqplot](img/allhomesfinalmodel)
+![allhomesqqplot](img/allhomesfinalmodel.png)
 
 ##Summary
 
