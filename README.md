@@ -56,8 +56,7 @@ several more models using Ordinary Least Squares, which produced much higher R-s
 This model explained variance to a fairly high degree, with virtually no issues of multicollinearity, although there was still some variance.  
 ![allhomesqqplot](img/allhomesfinalmodel.png)
 
-##Summary
+## Summary
 
-###King County Zipcode Map
-![kingcountyzipcodemap][img/kingcountymap]
-
+### King County Zipcode Map
+![kingcountyzipcodemap](img/kingcountymap])
