@@ -1,66 +1,62 @@
-# Phase 2 Project
+# King County, WA Real Estate Data Analysis for Residential Real Estate Agencies  
+### Authors:  
+[Jamie Dowat](mailto:jamie.dowat44@gmail.com)  
+[Svitlana Glibova](mailto:s.glibova@gmail.com)  
 
-Another module down--you're almost half way there!
+![seattle_skyline](img/seattleskyline.png)
 
-![awesome](https://raw.githubusercontent.com/learn-co-curriculum/dsc-phase-2-project-campus/master/halfway-there.gif)
+## Contents and Data  
+`img` contains images and visualizations used in the presentation and notebooks.  
+`notebooks` contains independent EDA notebooks used to create the `final_notebook.ipynb` file.  
+`src` contains source code and data files that were used in the final notebook.  
+Data files were obtained from [King County Department of Assessments](info.kingcounty.gov/assessor/DataDownload/default.aspx).
 
-All that remains in Phase 2 is to put our newfound data science skills to use with a large project! This project should take 20 to 30 hours to complete.
+`presentation.pdf` is a .pdf file containing a non-technical presentation of our data.  
+  
+## Business Understanding
+As the world becomes more tehcnologically savvy, highly-competitive markets like real estate are reaching for more rigorous analytics to 
+help them stay ahead. Although there are a number of stakeholders in the industry, the focus of our analysis is to maximize profit for
+residential real estate agencies and realtors, whose income directly depends on price of the house they sell and their client relationships.  
+Our main question to address is how to best assist clients in offering on and setting home prices.  
+## Data Understanding and Methods  
+The data set contains over 20,000 records of individual homes and their features, which we used for the data exploration and feature engineering stages.  
+We created correlation matrices for the home features to determine which features had the greatest correlation with prices and refrained from
+using features that were too highly correlated with each other in order to avoid multicollinearity and create stronger models.  
+The first feature that was most strongly correlated with price was `sqft_living`, which we used to engineer a price per square foot feature in order to create
+groups of homes within similar price ranges. Several other strongly-correlated features included:  
+* `condition` - rated 1-5 by King County, with 3 being the lowest inhabitable condition (not requiring severe remodeling)  
+* `grade` - rated 1-13 as an overview of the quality of the home's construction and its luxury features (per [King County Glossary](info.kingcounty.gov/assessor/esales/Glossary.aspx?type=r))  
+* `zipcode` - which we used in combination with per-sqft pricing to map areas by their home prices
+* `sqft_living15` - a mean of the square footage of the home's 15 nearest neighbors, useful for comparing properties
+* `sqft_lot` - the size of the entire property  
+* `waterfront` - more useful for the 'Luxury' (home grade 10+) subset, but strongly correlated with price  
 
-## Project Overview
+Several of our engineered features include:  
+* `in_city` - indicated whether the home is in a Seattle zipcode  
+* `unincorporated` - indicated whether the zipcode was in a municipal area with services or not
+* `location_cost` - a grouping indicator of which price-point the location of the home is in
 
-For this project, you will use regression modeling to analyze house sales in a northwestern county.
+Due to the focus of this analysis being residential realty, we subset our data in the following ways:  
+* Condition 3 and above - to only include inhabitable homes
+* Grade 6 and above - for the same reason as condition   
+* All homes within 3 standard deviations of the mean Per Square Foot price to reduce outlying data.  
 
-### The Data
-
-This project uses the King County House Sales dataset, which can be found in  `kc_house_data.csv` in the data folder in this repo. The description of the column names can be found in `column_names.md` in the same folder. As with most real world data sets, the column names are not perfectly described, so you'll have to do some research or use your best judgment if you have questions about what the data means.
-
-It is up to you to decide what data from this dataset to use and how to use it. If you are feeling overwhelmed or behind, we recommend you ignore some or all of the following features:
-
-* date
-* view
-* sqft_above
-* sqft_basement
-* yr_renovated
-* zipcode
-* lat
-* long
-* sqft_living15
-* sqft_lot15
-
-### Business Problem
-
-It is up to you to define a stakeholder and business problem appropriate to this dataset.
-
-If you are struggling to define a stakeholder, we recommend you complete a project for a real estate agency that helps homeowners buy and/or sell homes. A business problem you could focus on for this stakeholder is the need to provide advice to homeowners about how home renovations might increase the estimated value of their homes, and by what amount.
-
-## Deliverables
-
-There are three deliverables for this project:
-
-* A **GitHub repository**
-* A **Jupyter Notebook**
-* A **non-technical presentation**
-
-Review the "Project Submission & Review" page in the "Milestones Instructions" topic for instructions on creating and submitting your deliverables. Refer to the rubric associated with this assignment for specifications describing high-quality deliverables.
-
-### Key Points
-
-* **Your deliverables should explicitly address each step of the data science process.** Refer to [the Data Science Process lesson](https://github.com/learn-co-curriculum/dsc-data-science-processes) from Topic 19 for more information about process models you can use.
-
-* **Your Jupyter Notebook should demonstrate an iterative approach to modeling.** This means that you begin with a basic model, evaluate it, and then provide justification for and proceed to a new model. After you finish refining your models, you should provide 1-3 paragraphs discussing your final model - this should include interpreting at least 3 important parameter estimates or statistics.
-
-* **Based on the results of your models, your notebook and presentation should discuss at least two features that have strong relationships with housing prices.**
-
-## Getting Started
-
-Start on this project by forking and cloning [this project repository](https://github.com/learn-co-curriculum/dsc-phase-2-project) to get a local copy of the dataset.
-
-We recommend structuring your project repository similar to the structure in [the Phase 1 Project Template](https://github.com/learn-co-curriculum/dsc-project-template). You can do this either by creating a new fork of that repository to work in or by building a new repository from scratch that mimics that structure.
-
-## Project Submission and Review
-
-Review the "Project Submission & Review" page in the "Milestones Instructions" topic to learn how to submit your project and how it will be reviewed. Your project must pass review for you to progress to the next Phase.
+## Modeling  
+### Initial Model  
+Because `sqft_living` had the highest initial correlation, we used that to create our first simple model with the following formula:  
+`formula = 'price ~ sqft_living'`  
+![fsm_qqplot](img/initialmodel.png)  
+This first model had an R-squared of .493, so it was not able to explain a lot of the variance very well, and as you can see by the qqplot for 
+graphing the residuals (errors), the rate error was very high for high and low values of x. From analyzing this model, we could see that our
+data did not meet the assumptions of Linear Regression very well.  
+Following this first model, we used several transformations to normalize and center our data to a more Gaussian distribution and created
+several more models using Ordinary Least Squares, which produced much higher R-squared values and significant p-values.  
+### Updated Model for All Homes  
+![allhomesolsmodel](img/allhomesols.JPG)  
+This model explained variance to a fairly high degree, with virtually no issues of multicollinearity, although there was still some variance.  
+![allhomesqqplot](img/allhomesfinalmodel.png)
 
 ## Summary
 
-This project will give you a valuable opportunity to develop your data science skills using real-world data. The end-of-phase projects are a critical part of the program because they give you a chance to bring together all the skills you've learned, apply them to realistic projects for a business stakeholder, practice communication skills, and get feedback to help you improve. You've got this!
+### King County Zipcode Map
+![kingcountyzipcodemap](img/KingCountyMap.png)
