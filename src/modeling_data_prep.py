@@ -18,8 +18,6 @@ def add_dummies(data):
     bathrooms_series = pd.Series(data['bathrooms'])
 
     cat_bathrooms = bathrooms_series.astype('category')
-
-# Can concat to original data frame
     bathrooms = pd.get_dummies(cat_bathrooms, prefix='bath', drop_first=True)
     floor_dummies = pd.get_dummies(data['floors'].astype(int), prefix='floor', drop_first=True)
     cond_dummies = pd.get_dummies(data['condition'].astype(int), prefix='cond', drop_first=True)
@@ -44,6 +42,24 @@ def add_dummies(data):
                        season_dummies, lc, yrbuilt_dummies, decades, fortyyr], axis=1)
     return mod_df
 
+def highest_rsquared(data):
+    from statsmodels.formula.api import ols
+    import scipy.stats as stats
+    import pandas as pd
+    import numpy as np
+    x_cols = ['sqft_living', 'price_per_sqft',
+              'wf_Y','zpsft500plus','price_per_lot_sqft',
+              'grade_13','zpsft200_300',
+              'zpsft200_300','zpsft300_400','zip_psqft',
+              'sqft_living15','incity_Y','grade_12']
+    predictors = '+'.join(x_cols)
+                      
+    formula = 'price' + '~' + predictors
+
+    model = ols(formula = formula, data = data).fit() 
+    
+    return model, data[x_cols]
+
 def continuous_dists(data, cols):
     import matplotlib.pyplot as plt
 
@@ -60,8 +76,12 @@ def continuous_dists(data, cols):
 def normalizing(data):
     import numpy as np
     import matplotlib.pyplot as plt
+    import scipy.stats as stats
     
     data = data[(data['grade']>=6)&(data['condition']>=3)]
+    data = data[~(np.abs(stats.zscore(data['price'])) > 3)]
+    data = data[~(np.abs(stats.zscore(data['sqft_living'])) > 3)]
+    data = data[~(np.abs(stats.zscore(data['sqft_living15'])) > 3)]
     
     log_price = np.log(data['price'])
     log_sqft_living = np.log(data['sqft_living'])
@@ -75,7 +95,7 @@ def normalizing(data):
     plt.hist(log_sqft_lot, bins = 'auto', color = 'g', alpha = .7);
     plt.hist(log_sqft_living15, bins = 'auto', color = 'pink', alpha = .7);
     plt.hist(log_sqft_lot15, bins = 'auto', color = 'y', alpha = .7);
-    
+    plt.title('Normalized Variables: Price, sqft_living, sqft_lot, sqft_living15, sqft_lot15, yard_size')
     logged_vars = [log_price, log_sqft_living, log_sqft_lot, 
                    log_sqft_living15, log_sqft_lot15, log_yard_size]
     
@@ -105,23 +125,29 @@ def power_transform(logged=None):
     plt.hist(power_sqft_lot, bins = 'auto', color = 'g', alpha = .7);
     plt.hist(power_sqft_living15, bins = 'auto', color = 'pink', alpha = .7);
     plt.hist(power_sqft_lot15, bins = 'auto', color = 'y', alpha = .7);
-    
+    plt.title('Power Transformed Variables (Centered around Zero)')
     powered_vars = [power_price, power_sqft_living, power_sqft_living15,
                     power_sqft_lot, power_sqft_lot15, power_yard_size]
     return powered_vars, plt.show()
 
 def final_model_all_homes(data, powered=None):
     from statsmodels.formula.api import ols
+    import scipy.stats as stats
     import pandas as pd
+    import numpy as np
     
     data = data[(data['grade']>=6)&(data['condition']>=3)]
+    data = data[~(np.abs(stats.zscore(data['price'])) > 3)]
+    data = data[~(np.abs(stats.zscore(data['sqft_living'])) > 3)]
+    data = data[~(np.abs(stats.zscore(data['sqft_living15'])) > 3)]
+    
     grade_dummies = pd.get_dummies(data['grade'].astype(int),
                                    prefix='grade', drop_first=True)
     lc_series = pd.Series(data['location_cost']).astype('category')
 
     lc = pd.get_dummies(lc_series, drop_first=True)
     if powered==None:
-        return print("Error: Must have list-liked powered argument")
+        return print("Error: Must have list-like powered argument")
     data['price'] = powered[0]
     data['sqft_living'] = powered[1]
     data['sqft_living15'] = powered[2]
@@ -141,6 +167,7 @@ def final_model_all_homes(data, powered=None):
 def final_model_luxury(data):
     from statsmodels.formula.api import ols
     import pandas as pd
+    import scipy.stats as stats
     import numpy as np
     from sklearn.preprocessing import StandardScaler, PowerTransformer
     
@@ -199,7 +226,8 @@ def final_model_luxury(data):
                            wf, cond_dummies,
                            grade_dummies, lc, inc], axis=1)
     
-    x_cols = final_data.drop('price', axis = 1).columns
+    x_cols = final_data.drop('price', 
+                             axis = 1).columns
     predictors = '+'.join(x_cols)
                       
     formula = 'price' + '~' + predictors
@@ -211,11 +239,14 @@ def final_model_luxury(data):
 def final_model_non_lux(data):
     from statsmodels.formula.api import ols
     import pandas as pd
+    import scipy.stats as stats
     import numpy as np
     from sklearn.preprocessing import StandardScaler, PowerTransformer
     # subsetting the model
     data = data[(data['grade']>6)&(data['grade']<=9)&(data['condition']>=3)]
-    
+    data = data[~(np.abs(stats.zscore(data['price'])) > 3)]
+    data = data[~(np.abs(stats.zscore(data['sqft_living'])) > 3)]
+    data = data[~(np.abs(stats.zscore(data['sqft_living15'])) > 3)]
     ## Log and power transform
     
     log_price = np.log(data['price'])

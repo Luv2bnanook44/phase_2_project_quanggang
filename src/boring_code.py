@@ -141,6 +141,10 @@ def new_features(df, new_column_names):
         if col == 'waterfront':
             df['waterfront'][df['waterfront']==1] = 'Y'
             df['waterfront'][df['waterfront']==0] = 'N'
+        if col == '3plusbathrooms':
+            df['3plusbathrooms'] = np.where(df['bathrooms']>=3, 'Y', 'N')
+        if col == '6plusbathrooms':
+            df['6plusbathrooms'] = np.where(df['bathrooms']>=6, 'Y', 'N')
     return df.head()
 
 def corr_table(df):
