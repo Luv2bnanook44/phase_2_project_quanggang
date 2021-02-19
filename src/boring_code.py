@@ -336,9 +336,9 @@ def ttest_dist_check(df):
     ax.hist(inc, bins=30, color='mediumseagreen', density=True, label='Incorporated Homes') # inc
     ax.hist(uninc, bins=30, color='blue', density=True, alpha=.7, label='Unincorporated Homes') # not inc
     
-    ax.set_xlabel('Price (Millions)')
+    ax.set_xlabel('Price per Sqft')
     ax.set_ylabel('Density')
-    ax.set_title('Distribution of Price: Incorporated vs Unincorporated Homes', size=15)
+    ax.set_title('Distribution of Price per Sqft: Incorporated vs Unincorporated Homes', size=15)
 
     ax.axvline(x=df['price_per_sqft'][(df['unincorporated']=='N')].mean(), color='orange', label='Incorporated Mean') # incorporated
     ax.axvline(x=df['price_per_sqft'][(df['unincorporated']=='Y')].mean(), color='black', label = 'Unincorporated Mean')
