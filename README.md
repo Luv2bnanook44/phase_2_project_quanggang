@@ -7,7 +7,8 @@
 
 ## Contents and Data  
 `img` contains images and visualizations used in the presentation and notebooks.  
-`notebooks` contains independent EDA notebooks used to create the `final_notebook.ipynb` file.  
+`notebooks` contains independent EDA notebooks used to create the `final_notebook.ipynb` file. Within this file, the `bakeoff` folder contains 
+experimental predictive modeling as a side-project to the inferential modeling done in the main project.  
 `src` contains source code and data files that were used in the final notebook.  
 Data files were obtained from [King County Department of Assessments](info.kingcounty.gov/assessor/DataDownload/default.aspx).
 
