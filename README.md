@@ -68,5 +68,10 @@ to home prices, namely:
 * Its luxury features (or lack thereof)  
 
 Below, you will find a map of King County zipcodes to provide a reference for location and proximity to the city of Seattle.  
+
+
+##### To access all of our sources, or for more details about our process, see `final_notebook.ipynb` or `presentation.pdf`.
+
+
 ### King County Zipcode Map
 ![kingcountyzipcodemap](img/KingCountyMap.png)
