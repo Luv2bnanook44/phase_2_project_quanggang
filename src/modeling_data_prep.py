@@ -50,7 +50,7 @@ def highest_rsquared(data):
     x_cols = ['sqft_living', 'price_per_sqft',
               'wf_Y','zpsft500plus','price_per_lot_sqft',
               'grade_13','zpsft200_300',
-              'zpsft200_300','zpsft300_400','zip_psqft',
+              'zpsft300_400','zip_psqft',
               'sqft_living15','incity_Y','grade_12']
     predictors = '+'.join(x_cols)
                       
@@ -58,7 +58,85 @@ def highest_rsquared(data):
 
     model = ols(formula = formula, data = data).fit() 
     
-    return model, data[x_cols]
+    return model, data[['sqft_living', 'price_per_sqft',
+              'wf_Y','zpsft500plus','price_per_lot_sqft',
+              'grade_13','zpsft200_300',
+              'zpsft300_400','zip_psqft',
+              'sqft_living15','incity_Y','grade_12']]
+
+def most_normal_luxury(data):
+    from statsmodels.formula.api import ols
+    import pandas as pd
+    import scipy.stats as stats
+    import numpy as np
+    from sklearn.preprocessing import StandardScaler, PowerTransformer
+    
+    ## Log and power transform
+    
+    data = data[(data['grade']>=10)&(data['condition']>=3)]
+    
+    log_price = np.log(data['price'])
+    log_sqft_living = np.log(data['sqft_living'])
+    log_sqft_lot = np.log(data['sqft_lot'])
+    log_sqft_living15 = np.log(data['sqft_living15'])
+    log_sqft_lot15 = np.log(data['sqft_lot15'])
+    log_yard_size = np.log(data['yard_size'])
+    
+    logged_vars = [log_price, log_sqft_living, log_sqft_lot, 
+                   log_sqft_living15, log_sqft_lot15, log_yard_size]
+    
+    logged = logged_vars
+    
+    power = PowerTransformer()
+
+    power_price = power.fit_transform(np.array(logged[0]).reshape(-1, 1))
+    power_sqft_living = power.fit_transform(np.array(logged[1]).reshape(-1, 1))
+    power_sqft_lot = power.fit_transform(np.array(logged[2]).reshape(-1, 1))
+    power_sqft_living15 = power.fit_transform(np.array(logged[3]).reshape(-1, 1))
+    power_sqft_lot15 = power.fit_transform(np.array(logged[4]).reshape(-1, 1))
+    power_yard_size = power.fit_transform(np.array(logged[5]).reshape(-1, 1))
+    
+    powered_vars = [power_price, power_sqft_living, power_sqft_living15,
+                    power_sqft_lot, power_sqft_lot15, power_yard_size]
+    
+    
+    ##Prepare model
+    
+    grade_dummies = pd.get_dummies(data['grade'].astype(int),
+                                   prefix='grade', drop_first=True)
+    lc_series = pd.Series(data['location_cost']).astype('category')
+    lc = pd.get_dummies(lc_series, drop_first=True) 
+    cond_dummies = pd.get_dummies(data['condition'].astype(int), 
+                                  prefix='cond', drop_first=True)
+    inc_series = pd.Series(data['unincorporated']).astype('category')
+    inc = pd.get_dummies(inc_series, prefix='inc', drop_first=True)
+    
+    season_series = pd.Series(data['season_sold']).astype('category')
+    seasons = pd.get_dummies(season_series, prefix='se', drop_first=True)
+    
+    wf_series = pd.Series(data['waterfront'])
+
+    cat_wf = wf_series.astype('category')
+
+    wf = pd.get_dummies(cat_wf, prefix='wf', drop_first=True)
+    
+    powered = powered_vars
+    data['price'] = powered[0]
+    data['sqft_living15'] = powered[2]
+    
+    final_data = pd.concat([data[['price','sqft_living15']],
+                           wf, grade_dummies, seasons, lc, inc], axis=1)
+    
+    x_cols = final_data.drop('price', 
+                             axis = 1).columns
+    predictors = '+'.join(x_cols)
+                      
+    formula = 'price' + '~' + predictors
+
+    model = ols(formula = formula, data = final_data).fit() 
+    
+    return model, final_data
+    
 
 def continuous_dists(data, cols):
     import matplotlib.pyplot as plt
